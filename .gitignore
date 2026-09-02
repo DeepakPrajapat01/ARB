@@ -1,0 +1,24 @@
+node_modules/
+.next/
+target/
+.idea/
+*.iml
+.vscode/
+.env
+.env.local
+.DS_Store
+*.log
+
+
+
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Backend local secrets
+backend/.env
+
+# Firebase secrets
+backend/secrets

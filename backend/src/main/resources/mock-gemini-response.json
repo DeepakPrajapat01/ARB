@@ -1,0 +1,89 @@
+{
+    "schemaVersion": "1.0",
+    "personalInfo": {
+        "name": "Jane Doe",
+        "email": "jane.doe@example.com",
+        "phone": "+1 555-1234",
+        "location": "San Francisco, CA",
+        "linkedin": "https://linkedin.com/in/janedoe",
+        "github": null,
+        "portfolio": null
+    },
+    "summary": "Experienced software engineer specializing in backend development and scalable microservices.",
+    "education": [
+        {
+            "institution": "Stanford University",
+            "degree": "B.S.",
+            "fieldOfStudy": "Computer Science",
+            "startDate": "2015",
+            "endDate": "2019",
+            "grade": "3.8 GPA",
+            "description": null
+        }
+    ],
+    "skills": {
+        "programmingLanguages": [
+            "Java",
+            "Python",
+            "JavaScript"
+        ],
+        "frameworks": [
+            "Spring Boot",
+            "React"
+        ],
+        "libraries": [],
+        "databases": [
+            "PostgreSQL",
+            "Firebase"
+        ],
+        "tools": [
+            "Git",
+            "Docker"
+        ],
+        "cloudPlatforms": [
+            "GCP",
+            "AWS"
+        ],
+        "other": [
+            "Agile"
+        ]
+    },
+    "projects": [
+        {
+            "name": "AI Resume Builder",
+            "description": "Developed a full-stack platform parsing resumes using AI.",
+            "technologies": [
+                "Next.js",
+                "Spring Boot",
+                "Gemini API"
+            ],
+            "url": "https://airesume.example.com",
+            "githubUrl": null,
+            "startDate": "2023",
+            "endDate": "2024"
+        }
+    ],
+    "experience": [
+        {
+            "company": "Tech Corp",
+            "position": "Senior Backend Engineer",
+            "location": "Remote",
+            "startDate": "June 2019",
+            "endDate": "Present",
+            "current": true,
+            "responsibilities": [
+                "Architected scalable microservices using Spring Boot Java 21.",
+                "Integrated AI pipelines."
+            ]
+        }
+    ],
+    "certifications": [
+        {
+            "name": "AWS Certified Developer",
+            "issuer": "Amazon Web Services",
+            "date": "2021",
+            "credentialUrl": null
+        }
+    ],
+    "achievements": []
+}

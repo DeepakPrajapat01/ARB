@@ -1,0 +1,258 @@
+{
+    "type": "object",
+    "properties": {
+        "schemaVersion": {
+            "type": "string"
+        },
+        "personalInfo": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "nullable": true
+                },
+                "email": {
+                    "type": "string",
+                    "nullable": true
+                },
+                "phone": {
+                    "type": "string",
+                    "nullable": true
+                },
+                "location": {
+                    "type": "string",
+                    "nullable": true
+                },
+                "linkedin": {
+                    "type": "string",
+                    "nullable": true
+                },
+                "github": {
+                    "type": "string",
+                    "nullable": true
+                },
+                "portfolio": {
+                    "type": "string",
+                    "nullable": true
+                }
+            }
+        },
+        "summary": {
+            "type": "string",
+            "nullable": true
+        },
+        "education": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "institution": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "degree": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "fieldOfStudy": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "grade": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            }
+        },
+        "skills": {
+            "type": "object",
+            "properties": {
+                "programmingLanguages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "frameworks": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "libraries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "databases": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tools": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "cloudPlatforms": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "other": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "projects": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "technologies": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "githubUrl": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            }
+        },
+        "experience": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "company": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "position": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "location": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "current": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "responsibilities": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "certifications": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "issuer": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "date": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "credentialUrl": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            }
+        },
+        "achievements": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "date": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            }
+        }
+    },
+    "required": [
+        "schemaVersion",
+        "personalInfo",
+        "education",
+        "skills",
+        "projects",
+        "experience",
+        "certifications",
+        "achievements"
+    ]
+}

@@ -1,0 +1,25 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: resume-rebuilder-backend
+  config:
+    import: optional:file:.env[.properties]
+
+supabase:
+  storage:
+    endpoint: ${SUPABASE_STORAGE_ENDPOINT}
+    region: ${SUPABASE_STORAGE_REGION}
+    access-key: ${SUPABASE_STORAGE_ACCESS_KEY}
+    secret-key: ${SUPABASE_STORAGE_SECRET_KEY}
+    resume-bucket: ${SUPABASE_STORAGE_BUCKET_RESUMES}
+
+ai:
+  api-key: ${AI_API_KEY}
+  model: ${AI_MODEL:gemini-3.6-flash}
+  base-url: ${AI_BASE_URL}
+
+resume:
+  extraction:
+    max-file-size-bytes: 5242880
+    max-characters: 100000
