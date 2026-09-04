@@ -1,11 +1,17 @@
 import React from 'react';
-import { ResumeData } from '@/lib/api/resumeClient';
+import { OptResumeData } from '@/lib/api/resumeClient';
 
-/**
- * Fresher Template — Clean, ATS-friendly layout for students and recent graduates.
- * Education is prominent above experience. Simple single-column.
- */
-export function FresherTemplate({ data }: { data: ResumeData }) {
+function normalizeUrl(url: string | null | undefined): string | undefined {
+    if (!url) return undefined;
+    const trimmed = url.trim();
+    if (!trimmed) return undefined;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('mailto:')) {
+        return trimmed;
+    }
+    return `https://${trimmed}`;
+}
+
+export function FresherTemplate({ data }: { data: OptResumeData }) {
     if (!data) return null;
     const { personalInfo, summary, experience, education, skills, projects, certifications, achievements } = data;
 
@@ -20,168 +26,184 @@ export function FresherTemplate({ data }: { data: ResumeData }) {
     };
 
     return (
-        <div
-            className="bg-white text-gray-900 w-[210mm] min-h-[297mm] px-[18mm] py-[14mm] mx-auto box-border print:shadow-none"
-            style={{ fontFamily: '"Georgia", "Times New Roman", serif', fontSize: '10pt' }}
-        >
+        <div className="resume-page font-serif" style={{ fontFamily: '"Georgia", "Times New Roman", serif' }}>
             {/* ── Header ───────────────────────────────────────────────── */}
-            <div className="text-center mb-5 pb-4 border-b-2 border-gray-800">
-                <h1 className="text-3xl font-bold uppercase tracking-wider mb-2">
+            <div className="text-center mb-4 pb-2 border-b border-black">
+                <h1 className="text-[20px] font-bold uppercase tracking-wider mb-1 text-black">
                     {personalInfo?.name || 'Your Name'}
                 </h1>
-                <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-sm text-gray-600">
+                <div className="flex flex-wrap justify-center gap-x-2 gap-y-1 text-[10px] text-black">
                     {personalInfo?.email && <span>{personalInfo.email}</span>}
-                    {personalInfo?.phone && <><span>|</span><span>{personalInfo.phone}</span></>}
-                    {personalInfo?.location && <><span>|</span><span>{personalInfo.location}</span></>}
+                    {personalInfo?.email && personalInfo?.phone && <span>|</span>}
+                    {personalInfo?.phone && <span>{personalInfo.phone}</span>}
+                    {(personalInfo?.email || personalInfo?.phone) && personalInfo?.location && <span>|</span>}
+                    {personalInfo?.location && <span>{personalInfo.location}</span>}
                 </div>
-                <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-sm mt-1">
-                    {personalInfo?.linkedin && (
-                        <a href={personalInfo.linkedin} className="text-blue-700 underline">{personalInfo.linkedin}</a>
-                    )}
+                <div className="flex flex-wrap justify-center gap-x-2 gap-y-1 text-[10px] mt-1 text-black">
                     {personalInfo?.github && (
-                        <><span className="text-gray-400">|</span>
-                            <a href={personalInfo.github} className="text-blue-700 underline">{personalInfo.github}</a></>
+                        <a href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer" className="text-black underline break-all">GitHub</a>
                     )}
+                    {personalInfo?.github && personalInfo?.linkedin && <span>|</span>}
+                    {personalInfo?.linkedin && (
+                        <a href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="text-black underline break-all">LinkedIn</a>
+                    )}
+                    {(personalInfo?.github || personalInfo?.linkedin) && personalInfo?.portfolio && <span>|</span>}
                     {personalInfo?.portfolio && (
-                        <><span className="text-gray-400">|</span>
-                            <a href={personalInfo.portfolio} className="text-blue-700 underline">{personalInfo.portfolio}</a></>
+                        <a href={normalizeUrl(personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="text-black underline break-all">Portfolio</a>
                     )}
                 </div>
             </div>
 
             {/* ── Objective / Summary ───────────────────────────────────── */}
             {summary && (
-                <Section title="Objective">
-                    <p className="text-sm leading-relaxed text-justify">{summary}</p>
-                </Section>
+                <div className="mb-3 text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1.5 tracking-wide text-black">Professional Summary</h2>
+                    <p className="text-[10px] leading-[1.3] text-left text-black">{summary}</p>
+                </div>
             )}
 
             {/* ── Education ───────────────────────────────────────────── */}
             {education && education.length > 0 && (
-                <Section title="Education">
+                <div className="mb-3 text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1.5 tracking-wide text-black">Education</h2>
                     {education.map((edu, i) => (
-                        <div key={i} className="mb-3 break-inside-avoid">
+                        <div key={i} className="mb-2 break-inside-avoid text-left">
                             <div className="flex justify-between items-baseline">
-                                <p className="font-bold text-sm">{edu.institution}</p>
-                                <p className="text-xs text-gray-600 whitespace-nowrap ml-2">
+                                <h3 className="font-bold text-[11px] text-black">{edu.institution}</h3>
+                                <span className="text-[10px] font-bold text-black whitespace-nowrap ml-2">
                                     {edu.startDate && edu.endDate
                                         ? `${edu.startDate} – ${edu.endDate}`
                                         : edu.endDate ?? edu.startDate}
-                                </p>
+                                </span>
                             </div>
-                            <p className="text-sm italic text-gray-700">
-                                {edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
-                                {edu.grade ? ` | Grade: ${edu.grade}` : ''}
-                            </p>
-                            {edu.description && <p className="text-sm mt-0.5 text-gray-600">{edu.description}</p>}
+                            <div className="flex justify-between items-baseline">
+                                <span className="text-[10px] italic text-black">
+                                    {edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
+                                </span>
+                                {edu.grade && <span className="text-[10px] text-black font-bold">Grade: {edu.grade}</span>}
+                            </div>
                         </div>
                     ))}
-                </Section>
+                </div>
             )}
 
             {/* ── Skills ─────────────────────────────────────────────── */}
             {skills && Object.keys(skills).length > 0 && (
-                <Section title="Technical Skills">
-                    <ul className="text-sm space-y-0.5">
+                <div className="mb-3 text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1.5 tracking-wide text-black">Technical Skills</h2>
+                    <ul className="text-[10px] space-y-0.5 text-left text-black">
                         {Object.entries(skills).map(([cat, items]) =>
                             Array.isArray(items) && items.length > 0 ? (
                                 <li key={cat}>
-                                    <span className="font-semibold">{SKILL_LABELS[cat] ?? cat}: </span>
+                                    <span className="font-bold">{SKILL_LABELS[cat] ?? cat}: </span>
                                     {(items as string[]).join(', ')}
                                 </li>
                             ) : null
                         )}
                     </ul>
-                </Section>
+                </div>
             )}
 
             {/* ── Projects ───────────────────────────────────────────── */}
             {projects && projects.length > 0 && (
-                <Section title="Projects">
+                <div className="mb-3 text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1.5 tracking-wide text-black">Projects</h2>
                     {projects.map((proj, i) => (
-                        <div key={i} className="mb-3 break-inside-avoid">
+                        <div key={i} className="mb-2 break-inside-avoid text-left">
                             <div className="flex justify-between items-baseline">
-                                <p className="font-bold text-sm">
+                                <h3 className="font-bold text-[11px] text-black">
                                     {proj.name}
-                                    {proj.technologies && proj.technologies.length > 0 && (
-                                        <span className="font-normal italic text-gray-600">
-                                            {' '}| {proj.technologies.join(', ')}
-                                        </span>
+                                </h3>
+                                <span className="text-[10px] font-bold text-black whitespace-nowrap ml-2 flex gap-1.5 items-center">
+                                    <span>{(proj.startDate && proj.endDate) ? `${proj.startDate} - ${proj.endDate}` : (proj.endDate || proj.startDate || '')}</span>
+                                    {proj.githubUrl && (
+                                        <>
+                                            {(proj.startDate || proj.endDate) && <span className="font-normal mx-0.5">|</span>}
+                                            <a href={normalizeUrl(proj.githubUrl)} className="text-black underline font-normal">GitHub</a>
+                                        </>
                                     )}
-                                </p>
-                                {proj.url && (
-                                    <a href={proj.url} className="text-xs text-blue-700 underline ml-2">{proj.url}</a>
-                                )}
+                                    {proj.url && (
+                                        <>
+                                            {(proj.startDate || proj.endDate || proj.githubUrl) && <span className="font-normal mx-0.5">|</span>}
+                                            <a href={normalizeUrl(proj.url)} className="text-black underline font-normal">Live Demo</a>
+                                        </>
+                                    )}
+                                </span>
                             </div>
-                            {proj.description && <p className="text-sm text-justify mt-0.5">{proj.description}</p>}
+                            {proj.technologies && proj.technologies.length > 0 && (
+                                <div className="text-[10px] text-black italic mb-0.5">
+                                    {proj.technologies.join(', ')}
+                                </div>
+                            )}
+                            {proj.description && proj.description.length > 0 && (
+                                <p className="text-[10px] leading-[1.3] text-black mt-0.5 text-left whitespace-pre-wrap">{proj.description}</p>
+                            )}
                         </div>
                     ))}
-                </Section>
+                </div>
             )}
 
             {/* ── Experience ─────────────────────────────────────────── */}
             {experience && experience.length > 0 && (
-                <Section title="Experience">
+                <div className="mb-3 text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1.5 tracking-wide text-black">Experience</h2>
                     {experience.map((exp, i) => (
-                        <div key={i} className="mb-3 break-inside-avoid">
+                        <div key={i} className="mb-2 break-inside-avoid text-left">
                             <div className="flex justify-between items-baseline">
-                                <p className="font-bold text-sm">{exp.company}</p>
-                                <p className="text-xs text-gray-600 whitespace-nowrap ml-2">
-                                    {exp.startDate} – {exp.current ? 'Present' : exp.endDate}
-                                </p>
+                                <h3 className="font-bold text-[11px] text-black">{exp.company}</h3>
+                                <span className="text-[10px] font-bold text-black whitespace-nowrap ml-2">
+                                    {exp.startDate} – {exp.endDate || 'Present'}
+                                </span>
                             </div>
-                            <p className="text-sm italic text-gray-700 mb-1">
+                            <div className="text-[10px] italic text-black mb-0.5">
                                 {exp.position}{exp.location ? `, ${exp.location}` : ''}
-                            </p>
+                            </div>
                             {exp.responsibilities && exp.responsibilities.length > 0 && (
-                                <ul className="list-disc pl-5 space-y-0.5">
+                                <ul className="list-disc pl-4 space-y-0.5 text-[10px] leading-[1.3] text-left text-black">
                                     {exp.responsibilities.map((r, ri) => (
-                                        <li key={ri} className="text-sm text-justify leading-relaxed">{r}</li>
+                                        <li key={ri}>{r}</li>
                                     ))}
                                 </ul>
                             )}
                         </div>
                     ))}
-                </Section>
+                </div>
             )}
 
-            {/* ── Certifications ─────────────────────────────────────── */}
-            {certifications && certifications.length > 0 && (
-                <Section title="Certifications">
-                    <ul className="list-disc pl-5 text-sm space-y-1">
-                        {certifications.map((cert, i) => (
-                            <li key={i}>
-                                <strong>{cert.name}</strong> — {cert.issuer} ({cert.date})
-                                {cert.credentialUrl && (
-                                    <> <a href={cert.credentialUrl} className="text-blue-700 underline">Link</a></>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </Section>
-            )}
+            {/* ── Certifications / Achievements ───────────────────────── */}
+            {(certifications && certifications.length > 0) || (achievements && achievements.length > 0) ? (
+                <div className="flex flex-col gap-3">
+                    {certifications && certifications.length > 0 && (
+                        <div className="text-left">
+                            <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1.5 tracking-wide text-black">Certifications</h2>
+                            <ul className="list-disc pl-4 text-[10px] space-y-0.5 text-black">
+                                {certifications.map((cert, i) => (
+                                    <li key={i}>
+                                        <strong>{cert.name}</strong> — {cert.issuer} ({cert.date})
+                                        {cert.credentialUrl && (
+                                            <> <a href={normalizeUrl(cert.credentialUrl)} className="text-black underline ml-1 font-normal">Credential</a></>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
 
-            {/* ── Achievements ───────────────────────────────────────── */}
-            {achievements && achievements.length > 0 && (
-                <Section title="Achievements">
-                    <ul className="list-disc pl-5 text-sm space-y-1">
-                        {achievements.map((ach, i) => (
-                            <li key={i}>
-                                <strong>{ach.title}</strong>{ach.description ? ` — ${ach.description}` : ''}
-                            </li>
-                        ))}
-                    </ul>
-                </Section>
-            )}
-        </div>
-    );
-}
+                    {achievements && achievements.length > 0 && (
+                        <div className="text-left">
+                            <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1.5 tracking-wide text-black">Achievements</h2>
+                            <ul className="list-disc pl-4 text-[10px] space-y-0.5 text-black">
+                                {achievements.map((ach, i) => (
+                                    <li key={i}>
+                                        <strong>{ach.title}</strong>{ach.description ? ` — ${ach.description}` : ''}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            ) : null}
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-    return (
-        <div className="mb-4">
-            <h2 className="text-sm font-bold uppercase border-b border-gray-800 mb-2 tracking-wide">{title}</h2>
-            {children}
         </div>
     );
 }

@@ -1,58 +1,93 @@
 import React from 'react';
-import { ResumeData } from '@/lib/api/resumeClient';
+import { OptResumeData } from '@/lib/api/resumeClient';
 
-export function ATSClassic({ data }: { data: ResumeData }) {
+function normalizeUrl(url: string | null | undefined): string | undefined {
+    if (!url) return undefined;
+    const trimmed = url.trim();
+    if (!trimmed) return undefined;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('mailto:')) {
+        return trimmed;
+    }
+    return `https://${trimmed}`;
+}
+
+export function ATSClassic({ data }: { data: OptResumeData }) {
     if (!data) return null;
     const { personalInfo, summary, experience, education, skills, projects, certifications } = data;
 
     return (
-        <div className="bg-white text-black w-[210mm] min-h-[297mm] p-[20mm] font-serif shadow-sm print:shadow-none print:w-full print:p-0 mx-auto box-border" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
-
+        <div className="resume-page font-serif" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
             {/* Header / Personal Info */}
-            <div className="text-center mb-6 border-b border-black pb-4">
-                <h1 className="text-3xl font-bold uppercase tracking-wide mb-1">{personalInfo?.name || 'Your Name'}</h1>
-                <div className="text-sm space-x-2 flex flex-wrap justify-center items-center">
+            <div className="text-center mb-4">
+                <h1 className="text-[20px] font-bold uppercase tracking-wide mb-1 text-black">{personalInfo?.name || 'Your Name'}</h1>
+                <div className="text-[10px] space-x-2 flex flex-wrap justify-center items-center text-black">
                     {personalInfo?.email && <span>{personalInfo.email}</span>}
                     {personalInfo?.phone && <><span>|</span><span>{personalInfo.phone}</span></>}
                     {personalInfo?.location && <><span>|</span><span>{personalInfo.location}</span></>}
                 </div>
-                <div className="text-sm space-x-2 flex flex-wrap justify-center items-center mt-1">
-                    {personalInfo?.linkedin && (
-                        <a href={personalInfo.linkedin} className="text-blue-800 underline break-all">{personalInfo.linkedin}</a>
-                    )}
-                    {personalInfo?.linkedin && personalInfo?.github && <span>|</span>}
+                <div className="text-[10px] space-x-2 flex flex-wrap justify-center items-center mt-1 text-black">
                     {personalInfo?.github && (
-                        <a href={personalInfo.github} className="text-blue-800 underline break-all">{personalInfo.github}</a>
+                        <a href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer" className="text-black underline break-all">GitHub</a>
+                    )}
+                    {personalInfo?.linkedin && (
+                        <><span className={personalInfo?.github ? "" : "hidden"}>|</span>
+                            <a href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="text-black underline break-all">LinkedIn</a></>
+                    )}
+                    {personalInfo?.portfolio && (
+                        <><span className={(personalInfo?.github || personalInfo?.linkedin) ? "" : "hidden"}>|</span>
+                            <a href={normalizeUrl(personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="text-black underline break-all">Portfolio</a></>
                     )}
                 </div>
             </div>
 
             {/* Summary */}
             {summary && (
-                <div className="mb-4 break-inside-avoid">
-                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-2">Professional Summary</h2>
-                    <p className="text-sm text-justify leading-relaxed">{summary}</p>
+                <div className="mb-3 break-inside-avoid text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1 text-black">Professional Summary</h2>
+                    <p className="text-[10px] leading-[1.3] text-black">{summary}</p>
+                </div>
+            )}
+
+            {/* Skills */}
+            {skills && Object.keys(skills).length > 0 && (
+                <div className="mb-3 break-inside-avoid text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1 text-black">Technical Skills</h2>
+                    <ul className="text-[10px] leading-[1.3] text-black space-y-0.5">
+                        {Object.entries(skills).map(([category, items], idx) => {
+                            if (!items || items.length === 0) return null;
+                            return (
+                                <li key={idx}>
+                                    <span className="font-bold capitalize">{category}: </span>
+                                    {(items as string[]).join(', ')}
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </div>
             )}
 
             {/* Experience */}
             {experience && experience.length > 0 && (
-                <div className="mb-4">
-                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-2">Experience</h2>
+                <div className="mb-3 text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1 text-black">Experience</h2>
                     {experience.map((exp, idx) => (
-                        <div key={idx} className="mb-3 break-inside-avoid">
-                            <div className="flex justify-between items-baseline mb-1">
-                                <h3 className="text-base font-bold">{exp.company}</h3>
-                                <span className="text-sm font-medium">{exp.startDate} - {exp.endDate || 'Present'}</span>
+                        <div key={idx} className="mb-2 break-inside-avoid">
+                            <div className="flex justify-between items-baseline">
+                                <h3 className="text-[11px] font-bold text-black">{exp.company}</h3>
+                                <span className="text-[10px] font-bold text-black whitespace-nowrap ml-2">
+                                    {exp.startDate} - {exp.endDate || 'Present'}
+                                </span>
                             </div>
-                            <div className="flex justify-between items-baseline mb-1 italic text-sm">
+                            <div className="flex justify-between items-baseline mb-0.5 italic text-[10px] text-black">
                                 <span>{exp.position}{exp.location ? `, ${exp.location}` : ''}</span>
                             </div>
-                            <ul className="list-disc pl-5 text-sm space-y-1 mt-1">
-                                {exp.responsibilities?.map((item, i) => (
-                                    <li key={i} className="leading-relaxed text-justify">{item}</li>
-                                ))}
-                            </ul>
+                            {exp.responsibilities && exp.responsibilities.length > 0 && (
+                                <ul className="list-disc pl-4 text-[10px] leading-[1.3] text-black space-y-0.5">
+                                    {exp.responsibilities.map((item, i) => (
+                                        <li key={i}>{item}</li>
+                                    ))}
+                                </ul>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -60,53 +95,56 @@ export function ATSClassic({ data }: { data: ResumeData }) {
 
             {/* Projects */}
             {projects && projects.length > 0 && (
-                <div className="mb-4">
-                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-2">Projects</h2>
+                <div className="mb-3 text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1 text-black">Projects</h2>
                     {projects.map((proj, idx) => (
-                        <div key={idx} className="mb-3 break-inside-avoid">
-                            <div className="flex justify-between items-baseline mb-1">
-                                <h3 className="text-base font-bold">
+                        <div key={idx} className="mb-2 break-inside-avoid">
+                            <div className="flex justify-between items-baseline">
+                                <h3 className="text-[11px] font-bold text-black">
                                     {proj.name}
-                                    {proj.technologies && proj.technologies.length > 0 && (
-                                        <span className="font-normal italic"> | {proj.technologies.join(', ')}</span>
-                                    )}
                                 </h3>
+                                <span className="text-[10px] font-bold text-black whitespace-nowrap ml-2 flex gap-1.5 items-center">
+                                    <span>{(proj.startDate && proj.endDate) ? `${proj.startDate} - ${proj.endDate}` : (proj.endDate || proj.startDate || '')}</span>
+                                    {proj.githubUrl && (
+                                        <>
+                                            {(proj.startDate || proj.endDate) && <span className="font-normal mx-0.5">|</span>}
+                                            <a href={normalizeUrl(proj.githubUrl)} className="text-black underline font-normal">GitHub</a>
+                                        </>
+                                    )}
+                                    {proj.url && (
+                                        <>
+                                            {(proj.startDate || proj.endDate || proj.githubUrl) && <span className="font-normal mx-0.5">|</span>}
+                                            <a href={normalizeUrl(proj.url)} className="text-black underline font-normal">Live Demo</a>
+                                        </>
+                                    )}
+                                </span>
                             </div>
-                            {proj.url && (
-                                <a href={proj.url} className="text-sm text-blue-800 underline italic block mb-1">{proj.url}</a>
+                            {proj.technologies && proj.technologies.length > 0 && (
+                                <div className="text-[10px] italic text-black mb-0.5">
+                                    {proj.technologies.join(' | ')}
+                                </div>
                             )}
-                            <p className="text-sm text-justify leading-relaxed">{proj.description}</p>
+                            {proj.description && proj.description.length > 0 && (
+                                <p className="text-[10px] leading-[1.3] text-black mt-0.5 whitespace-pre-wrap">{proj.description}</p>
+                            )}
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Skills */}
-            {skills && Object.keys(skills).length > 0 && (
-                <div className="mb-4 break-inside-avoid">
-                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-2">Skills</h2>
-                    <ul className="text-sm space-y-1">
-                        {Object.entries(skills).map(([category, items], idx) => (
-                            <li key={idx}>
-                                <span className="font-bold capitalize">{category}: </span>
-                                {(items as string[]).join(', ')}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
             {/* Education */}
             {education && education.length > 0 && (
-                <div className="mb-4">
-                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-2">Education</h2>
+                <div className="mb-3 text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1 text-black">Education</h2>
                     {education.map((edu, idx) => (
-                        <div key={idx} className="mb-3 break-inside-avoid">
-                            <div className="flex justify-between items-baseline mb-1">
-                                <h3 className="text-base font-bold">{edu.institution}</h3>
-                                <span className="text-sm font-medium">{(edu.endDate || edu.startDate) ? (edu.endDate ?? edu.startDate) : ''}</span>
+                        <div key={idx} className="mb-2 break-inside-avoid">
+                            <div className="flex justify-between items-baseline">
+                                <h3 className="text-[11px] font-bold text-black">{edu.institution}</h3>
+                                <span className="text-[10px] font-bold text-black whitespace-nowrap ml-2">
+                                    {(edu.endDate || edu.startDate) ? (edu.endDate ?? edu.startDate) : ''}
+                                </span>
                             </div>
-                            <div className="flex justify-between items-baseline text-sm">
+                            <div className="flex justify-between items-baseline text-[10px] text-black">
                                 <span className="italic">{edu.degree} {edu.fieldOfStudy ? `in ${edu.fieldOfStudy}` : ''}</span>
                                 {edu.grade && <span>Grade: {edu.grade}</span>}
                             </div>
@@ -115,15 +153,15 @@ export function ATSClassic({ data }: { data: ResumeData }) {
                 </div>
             )}
 
-            {/* Certifications */}
+            {/* Certifications (if any) */}
             {certifications && certifications.length > 0 && (
-                <div className="mb-4 break-inside-avoid">
-                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-2">Certifications</h2>
-                    <ul className="list-disc pl-5 text-sm space-y-1">
+                <div className="mb-3 break-inside-avoid text-left">
+                    <h2 className="text-[14px] font-bold uppercase border-b border-black mb-1 text-black">Certifications</h2>
+                    <ul className="list-disc pl-4 text-[10px] space-y-0.5 text-black">
                         {certifications.map((cert, idx) => (
                             <li key={idx}>
-                                <strong>{cert.name}</strong> — {cert.issuer} ({cert.date})
-                                {cert.credentialUrl && <span> <a href={cert.credentialUrl} className="text-blue-800 underline">Link</a></span>}
+                                <strong>{cert.name}</strong> — {cert.issuer} {cert.date ? `(${cert.date})` : ''}
+                                {cert.credentialUrl && <span> <a href={normalizeUrl(cert.credentialUrl)} className="text-black underline ml-1">Credential</a></span>}
                             </li>
                         ))}
                     </ul>
