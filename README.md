@@ -31,9 +31,6 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-## 7. Environment Variables
-Copy `.env.example` to `.env.local` inside the frontend folder, and set the appropriate variables (such as `NEXT_PUBLIC_API_BASE_URL`).
-The backend will use properties managed through Spring configuration.
 
 ## 8. How to run locally
 1. Run backend (port 8080)
