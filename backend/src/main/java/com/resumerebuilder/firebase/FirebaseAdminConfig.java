@@ -44,14 +44,24 @@ public class FirebaseAdminConfig {
     }
 
     private GoogleCredentials resolveCredentials() throws IOException {
-        // If a specific file path is provided, load it directly.
-        if (credentialsPath != null && !credentialsPath.isBlank()) {
-            try (InputStream is = new FileInputStream(credentialsPath)) {
-                return ServiceAccountCredentials.fromStream(is);
+        String[] potentialPaths = {
+            credentialsPath, // Prefer GOOGLE_APPLICATION_CREDENTIALS if set
+            "/etc/secrets/firebase-service-account.json", // Render production path
+            "./secrets/firebase-service-account.json" // Local development fallback path
+        };
+
+        for (String path : potentialPaths) {
+            if (path != null && !path.isBlank()) {
+                java.io.File file = new java.io.File(path);
+                if (file.exists()) {
+                    try (InputStream is = new FileInputStream(file)) {
+                        return ServiceAccountCredentials.fromStream(is);
+                    }
+                }
             }
         }
-        // Fall back to Google Application Default Credentials (CI / cloud
-        // environments).
+
+        // Fall back to Google Application Default Credentials (CI / cloud environments).
         return GoogleCredentials.getApplicationDefault();
     }
 }
