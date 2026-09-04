@@ -69,7 +69,7 @@ public class ResumeOptimizationServiceTest {
                 when(firestoreService.getDocument("resumes", "resume1", Resume.class))
                                 .thenReturn(buildResume("different-user", ResumeStatus.STRUCTURED));
 
-                assertThrows(IllegalArgumentException.class,
+                assertThrows(com.resumerebuilder.extraction.exception.DocumentNotFoundException.class,
                                 () -> service.optimizeResume("user1", "resume1", "Backend Developer"));
         }
 

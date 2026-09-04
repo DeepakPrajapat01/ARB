@@ -1,5 +1,6 @@
 package com.resumerebuilder.resume.service;
 
+import com.resumerebuilder.extraction.exception.DocumentNotFoundException;
 import com.resumerebuilder.firebase.FirestoreService;
 import com.resumerebuilder.resume.model.Resume;
 import com.resumerebuilder.resume.model.ResumeStatus;
@@ -67,8 +68,8 @@ public class ResumeService {
 
     public Resume getResume(String userId, String resumeId) {
         Resume resume = firestoreService.getDocument(COLLECTION_NAME, resumeId, Resume.class);
-        if (resume == null || !resume.getUserId().equals(userId)) {
-            throw new RuntimeException("Resume not found or unauthorized");
+        if (resume == null || resume.getUserId() == null || !resume.getUserId().equals(userId)) {
+            throw new DocumentNotFoundException("Resume not found: " + resumeId);
         }
         return resume;
     }

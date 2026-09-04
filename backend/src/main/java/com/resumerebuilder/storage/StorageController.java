@@ -1,5 +1,7 @@
 package com.resumerebuilder.storage;
 
+import com.google.firebase.auth.FirebaseToken;
+import com.resumerebuilder.extraction.exception.DocumentNotFoundException;
 import com.resumerebuilder.firebase.FirebaseTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,12 +34,15 @@ public class StorageController {
             @RequestParam("file") MultipartFile file) {
         try {
             // Protect endpoint
-            firebaseTokenService.extractTokenFromRequest(request);
+            FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
+            validatePathOwnership(token.getUid(), path);
 
             String uploadedPath = storageService.uploadFile(bucketName, path, file);
             return ResponseEntity.ok(Map.of(
                     "message", "File uploaded successfully",
                     "path", uploadedPath));
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             if (e.getMessage() != null &&
                     (e.getMessage().contains("Firebase Token") || e.getMessage().contains("Authorization"))) {
@@ -53,9 +58,12 @@ public class StorageController {
             @PathVariable String bucketName,
             @RequestParam("path") String path) {
         try {
-            firebaseTokenService.extractTokenFromRequest(request);
+            FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
+            validatePathOwnership(token.getUid(), path);
             storageService.deleteFile(bucketName, path);
             return ResponseEntity.ok(Map.of("message", "File deleted successfully"));
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             if (e.getMessage() != null &&
                     (e.getMessage().contains("Firebase Token") || e.getMessage().contains("Authorization"))) {
@@ -72,15 +80,30 @@ public class StorageController {
             @RequestParam("path") String path,
             @RequestParam(value = "durationMinutes", defaultValue = "60") int durationMinutes) {
         try {
-            firebaseTokenService.extractTokenFromRequest(request);
+            FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
+            validatePathOwnership(token.getUid(), path);
             URL url = storageService.generatePresignedUrl(bucketName, path, durationMinutes);
             return ResponseEntity.ok(Map.of("url", url.toString()));
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             if (e.getMessage() != null &&
                     (e.getMessage().contains("Firebase Token") || e.getMessage().contains("Authorization"))) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
             }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    private void validatePathOwnership(String userId, String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("Storage path cannot be null");
+        }
+        if (path.startsWith("users/")) {
+            String expectedPrefix = "users/" + userId + "/";
+            if (!path.startsWith(expectedPrefix)) {
+                throw new DocumentNotFoundException("Storage path not found or access denied");
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package com.resumerebuilder.pdf.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.auth.FirebaseToken;
+import com.resumerebuilder.extraction.exception.DocumentNotFoundException;
 import com.resumerebuilder.firebase.FirebaseTokenService;
 import com.resumerebuilder.firebase.FirestoreService;
 import com.resumerebuilder.pdf.model.PdfMetadata;
@@ -52,27 +53,27 @@ public class PdfController {
             @RequestBody Map<String, String> body,
             HttpServletRequest request) {
 
-        FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
-        if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Unauthorized: valid Firebase token required.");
-        }
-        String userId = token.getUid();
-
-        Resume resume = resumeService.getResume(userId, id);
-        if (resume == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Resume not found.");
-        }
-
-        if (resume.getStatus() != com.resumerebuilder.resume.model.ResumeStatus.OPTIMIZED) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Resume must be in OPTIMIZED state before generating PDF.");
-        }
-
-        String templateId = body.getOrDefault("templateId", "ats-classic");
-
         try {
+            FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Unauthorized: valid Firebase token required.");
+            }
+            String userId = token.getUid();
+
+            Resume resume = resumeService.getResume(userId, id);
+            if (resume == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Resume not found or access denied"));
+            }
+
+            if (resume.getStatus() != com.resumerebuilder.resume.model.ResumeStatus.OPTIMIZED) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Resume must be in OPTIMIZED state before generating PDF.");
+            }
+
+            String templateId = body.getOrDefault("templateId", "ats-classic");
+
             // Fetch structured resume data to compute a content hash
             Object resumeData = firestoreService.getDocument("resumes", id + "/data/current", Object.class);
             if (resumeData == null) {
@@ -96,6 +97,9 @@ public class PdfController {
             response.put("hash", contentHash);
             return ResponseEntity.ok(response);
 
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "PDF generation failed: " + e.getMessage()));
@@ -111,20 +115,23 @@ public class PdfController {
             @PathVariable String id,
             HttpServletRequest request) {
 
-        FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
-        if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        String userId = token.getUid();
-
-        Resume resume = resumeService.getResume(userId, id);
-        if (resume == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         try {
+            FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            String userId = token.getUid();
+
+            Resume resume = resumeService.getResume(userId, id);
+            if (resume == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
             Map<String, Object> pdfInfo = pdfGenerationService.getGeneratedPdfInfo(id, userId);
             return ResponseEntity.ok(pdfInfo);
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.ok(
                     Map.of(

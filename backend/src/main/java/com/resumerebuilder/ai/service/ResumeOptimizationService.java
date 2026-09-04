@@ -3,6 +3,7 @@ package com.resumerebuilder.ai.service;
 import com.resumerebuilder.ai.model.ResumeData;
 import com.resumerebuilder.ai.model.ResumeOptimization;
 import com.resumerebuilder.ai.provider.ResumeOptimizer;
+import com.resumerebuilder.extraction.exception.DocumentNotFoundException;
 import com.resumerebuilder.firebase.FirestoreService;
 import com.resumerebuilder.resume.model.Resume;
 import com.resumerebuilder.resume.model.ResumeStatus;
@@ -35,7 +36,7 @@ public class ResumeOptimizationService {
     public ResumeOptimization optimizeResume(String userId, String resumeId, String targetRole) {
         Resume resume = firestoreService.getDocument(RESUMES_COLLECTION, resumeId, Resume.class);
         if (resume == null || resume.getUserId() == null || !resume.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("Resume not found or unauthorized");
+            throw new DocumentNotFoundException("Resume not found: " + resumeId);
         }
 
         if (resume.getStatus() != ResumeStatus.STRUCTURED && resume.getStatus() != ResumeStatus.OPTIMIZED
@@ -84,7 +85,7 @@ public class ResumeOptimizationService {
     public void executeMerge(String userId, String resumeId, ResumeData optResumeData) {
         Resume resume = firestoreService.getDocument(RESUMES_COLLECTION, resumeId, Resume.class);
         if (resume == null || resume.getUserId() == null || !resume.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("Resume not found or unauthorized");
+            throw new DocumentNotFoundException("Resume not found: " + resumeId);
         }
 
         ResumeOptimization pending = firestoreService.getDocument(
@@ -114,7 +115,7 @@ public class ResumeOptimizationService {
     public void rejectOptimization(String userId, String resumeId) {
         Resume resume = firestoreService.getDocument(RESUMES_COLLECTION, resumeId, Resume.class);
         if (resume == null || resume.getUserId() == null || !resume.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("Resume not found or unauthorized");
+            throw new DocumentNotFoundException("Resume not found: " + resumeId);
         }
         firestoreService.deleteDocument(RESUMES_COLLECTION + "/" + resumeId + "/" + OPTIMIZATION_SUBCOLLECTION,
                 OPTIMIZATION_DOC_ID);
@@ -123,7 +124,7 @@ public class ResumeOptimizationService {
     public ResumeOptimization getOptimization(String userId, String resumeId) {
         Resume resume = firestoreService.getDocument(RESUMES_COLLECTION, resumeId, Resume.class);
         if (resume == null || resume.getUserId() == null || !resume.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("Resume not found or unauthorized");
+            throw new DocumentNotFoundException("Resume not found: " + resumeId);
         }
         return firestoreService.getDocument(RESUMES_COLLECTION + "/" + resumeId + "/" + OPTIMIZATION_SUBCOLLECTION,
                 OPTIMIZATION_DOC_ID, ResumeOptimization.class);

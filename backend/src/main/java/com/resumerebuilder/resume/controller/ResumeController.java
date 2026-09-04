@@ -6,6 +6,7 @@ import com.resumerebuilder.ai.model.ResumeData;
 import com.resumerebuilder.ai.model.ResumeOptimization;
 import com.resumerebuilder.ai.service.ResumeOptimizationService;
 import com.resumerebuilder.ai.service.ResumeStructuringService;
+import com.resumerebuilder.extraction.exception.DocumentNotFoundException;
 import com.resumerebuilder.extraction.model.ExtractionResponse;
 import com.resumerebuilder.extraction.service.DocumentExtractionService;
 import com.resumerebuilder.firebase.FirebaseTokenService;
@@ -80,6 +81,8 @@ public class ResumeController {
             FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
             Resume resume = resumeService.getResume(token.getUid(), id);
             return ResponseEntity.ok(resume);
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
@@ -94,6 +97,8 @@ public class ResumeController {
             FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
             resumeService.deleteResume(token.getUid(), id);
             return ResponseEntity.ok(Map.of("message", "Resume deleted securely"));
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
@@ -108,6 +113,8 @@ public class ResumeController {
             FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
             URL url = resumeService.getDownloadUrl(token.getUid(), id);
             return ResponseEntity.ok(Map.of("url", url.toString()));
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
@@ -152,6 +159,8 @@ public class ResumeController {
             FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
             Map<String, Object> result = resumeStructuringService.structureResume(token.getUid(), id);
             return ResponseEntity.ok(result);
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             if (e.getMessage() != null
                     && (e.getMessage().contains("Firebase Token") || e.getMessage().contains("Authorization"))) {
@@ -176,6 +185,8 @@ public class ResumeController {
                         .body(Map.of("error", "Structured data not found. Ensure extraction ran successfully."));
             }
             return ResponseEntity.ok(data);
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             if (e.getMessage() != null
                     && (e.getMessage().contains("Firebase Token") || e.getMessage().contains("Authorization"))) {
@@ -216,6 +227,8 @@ public class ResumeController {
             }
             ResumeOptimization result = optimizationService.optimizeResume(token.getUid(), id, targetRole.trim());
             return ResponseEntity.ok(result);
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
@@ -236,6 +249,8 @@ public class ResumeController {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(result);
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
@@ -255,6 +270,8 @@ public class ResumeController {
             FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
             optimizationService.executeMerge(token.getUid(), id, optResumeData);
             return ResponseEntity.ok(Map.of("message", "Optimization accepted and saved successfully."));
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
@@ -272,6 +289,8 @@ public class ResumeController {
             FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
             optimizationService.rejectOptimization(token.getUid(), id);
             return ResponseEntity.ok(Map.of("message", "Optimization rejected. Original data preserved."));
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
