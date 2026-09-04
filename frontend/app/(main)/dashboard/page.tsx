@@ -7,7 +7,39 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { resumeClient, Resume } from "@/lib/api/resumeClient";
 import Link from "next/link";
-import { FileText, Loader2, ArrowRight } from "lucide-react";
+import { FileText, Loader2, ArrowRight, Trash2 } from "lucide-react";
+
+const STATUS_LABELS: Record<string, string> = {
+    "PENDING_UPLOAD": "Uploading",
+    "UPLOADED": "Uploaded",
+    "EXTRACTING": "Reading your resume",
+    "EXTRACTED": "Content extracted",
+    "STRUCTURING": "Understanding your resume",
+    "STRUCTURED": "Information extracted",
+    "OPTIMIZING": "Improving your resume",
+    "OPTIMIZED": "Optimization ready",
+    "GENERATING": "Creating PDF",
+    "GENERATED": "Ready to download",
+    "GENERATION_FAILED": "PDF generation failed"
+};
+
+const getResumeNextRoute = (resume: Resume) => {
+    switch (resume.status) {
+        case "UPLOADED":
+        case "EXTRACTED":
+        case "STRUCTURING":
+        case "STRUCTURED":
+            return `/dashboard/resumes/${resume.id}`;
+        case "OPTIMIZING":
+        case "OPTIMIZED":
+        case "GENERATING":
+        case "GENERATED":
+        case "GENERATION_FAILED":
+            return `/dashboard/resumes/${resume.id}/preview`;
+        default:
+            return `/dashboard/resumes/${resume.id}`;
+    }
+};
 
 export default function DashboardPage() {
     const { currentUser, loading, logout } = useAuth();
@@ -21,21 +53,35 @@ export default function DashboardPage() {
         }
     }, [currentUser, loading, router]);
 
-    useEffect(() => {
-        if (currentUser) {
-            const fetchResumes = async () => {
-                try {
-                    const data = await resumeClient.getUserResumes();
-                    setResumes(data || []);
-                } catch (error) {
-                    console.error("Failed to fetch resumes:", error);
-                } finally {
-                    setLoadingResumes(false);
-                }
-            };
-            fetchResumes();
+    const fetchResumes = async () => {
+        if (!currentUser) return;
+        setLoadingResumes(true);
+        try {
+            const data = await resumeClient.getUserResumes();
+            setResumes(data || []);
+        } catch (error) {
+            console.error("Failed to fetch resumes:", error);
+        } finally {
+            setLoadingResumes(false);
         }
+    };
+
+    useEffect(() => {
+        fetchResumes();
     }, [currentUser]);
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm("Delete this resume? This will permanently remove the uploaded resume, structured data, optimization data, and generated PDFs.")) {
+            return;
+        }
+        try {
+            await resumeClient.deleteResume(id);
+            setResumes(prev => prev.filter(r => r.id !== id));
+        } catch (error) {
+            console.error("Failed to delete resume:", error);
+            alert("Failed to delete the resume. Please try again.");
+        }
+    };
 
     if (loading || !currentUser) return null;
 
@@ -79,28 +125,38 @@ export default function DashboardPage() {
                         ) : (
                             <div className="space-y-4">
                                 {resumes.map(resume => (
-                                    <div key={resume.id} className="flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 transition-colors">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-3 bg-secondary rounded-md">
+                                    <div key={resume.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:border-primary/50 transition-colors gap-4">
+                                        <div className="flex items-start md:items-center gap-4 flex-1">
+                                            <div className="p-3 bg-secondary rounded-md hidden md:block">
                                                 <FileText className="h-6 w-6 text-primary flex-shrink-0" />
                                             </div>
-                                            <div className="overflow-hidden">
-                                                <h3 className="font-semibold text-sm truncate max-w-[200px] md:max-w-[300px]">
+                                            <div className="overflow-hidden flex-1">
+                                                <h3 className="font-semibold text-base truncate">
                                                     {resume.originalFileName}
                                                 </h3>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-xs text-muted-foreground">{new Date(resume.createdAt).toLocaleDateString()}</span>
-                                                    <Badge variant={resume.status === "UPLOADED" ? "default" : "secondary"} className="text-[10px] h-4">
-                                                        {resume.status}
+                                                <div className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+                                                    {resume.targetRole && <span title={resume.targetRole}>Target: {resume.targetRole}</span>}
+                                                    {resume.targetRole && resume.templateId && <span>•</span>}
+                                                    {resume.templateId && <span>Template: {resume.templateId}</span>}
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <Badge variant={resume.status === "GENERATED" ? "default" : "secondary"} className="text-[10px] h-5">
+                                                        {STATUS_LABELS[resume.status] || resume.status}
                                                     </Badge>
+                                                    <span className="text-xs text-muted-foreground ml-1">Updated {new Date(resume.updatedAt || resume.createdAt).toLocaleDateString()}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <Link href={`/dashboard/resumes/${resume.id}`}>
-                                            <Button variant="ghost" size="sm">
-                                                View <ArrowRight className="ml-2 h-4 w-4" />
+                                        <div className="flex items-center gap-2 justify-end">
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(resume.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                                <Trash2 className="h-4 w-4" />
                                             </Button>
-                                        </Link>
+                                            <Link href={getResumeNextRoute(resume)}>
+                                                <Button variant="default" size="sm">
+                                                    Continue <ArrowRight className="ml-2 h-4 w-4" />
+                                                </Button>
+                                            </Link>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

@@ -3,7 +3,7 @@
 import { use, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { resumeClient, ResumeData } from "@/lib/api/resumeClient";
+import { resumeClient, ResumeData, OptResumeData } from "@/lib/api/resumeClient";
 import { ResumeTemplateFactory } from "@/components/templates/ResumeTemplateFactory";
 
 function RenderPageContent({ resumeId }: { resumeId: string }) {
@@ -11,7 +11,7 @@ function RenderPageContent({ resumeId }: { resumeId: string }) {
     const searchParams = useSearchParams();
     const templateId = searchParams.get("templateId") || "ats-classic";
 
-    const [resumeData, setResumeData] = useState<ResumeData | null>(null);
+    const [optResumeData, setOptResumeData] = useState<OptResumeData | null>(null);
     const [error, setError] = useState("");
 
     // Use specific loading states to block render-ready signal until fully done
@@ -26,9 +26,17 @@ function RenderPageContent({ resumeId }: { resumeId: string }) {
             return;
         }
 
-        resumeClient.getResumeData(resumeId)
-            .then((data) => {
-                setResumeData(data);
+        Promise.all([
+            resumeClient.getResume(resumeId),
+            resumeClient.getResumeData(resumeId)
+        ])
+            .then(([resume, data]) => {
+                if (resume.status !== 'OPTIMIZED') {
+                    setError("Resume must be OPTIMIZED before rendering.");
+                    setIsDataLoaded(true);
+                    return;
+                }
+                setOptResumeData(data as OptResumeData);
                 setIsDataLoaded(true);
             })
             .catch((err) => {
@@ -46,14 +54,14 @@ function RenderPageContent({ resumeId }: { resumeId: string }) {
         return <div id="render-error" style={{ padding: "20px", color: "red" }}>Error: {error}</div>;
     }
 
-    if (!resumeData) {
+    if (!optResumeData) {
         return <div id="render-error" style={{ padding: "20px", color: "red" }}>No data found.</div>;
     }
 
     return (
         <>
             {/* The actual resume template fills the viewport for printing */}
-            <ResumeTemplateFactory templateId={templateId} data={resumeData} />
+            <ResumeTemplateFactory templateId={templateId} data={optResumeData} />
 
             {/* INVISIBLE MARKER FOR PLAYWRIGHT: Tells backend the DOM is fully injected and ready to print */}
             <div id="render-ready" style={{ display: 'none' }} data-template={templateId}></div>

@@ -36,6 +36,14 @@ public interface StorageService {
     void deleteFile(String bucketName, String path);
 
     /**
+     * Delete files in a bucket under a specific prefix (folder).
+     * 
+     * @param bucketName The name of the bucket
+     * @param pathPrefix The prefix path to match items to delete
+     */
+    void deleteFolder(String bucketName, String pathPrefix);
+
+    /**
      * Generate a short-lived presigned URL for downloading/viewing a file.
      * 
      * @param bucketName      The name of the bucket

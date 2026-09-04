@@ -54,15 +54,15 @@ public class ResumeOptimizationService {
             }
 
             // Route block to abstract infrastructure
-            ResumeData optimizedData = resumeOptimizer.optimizeResumeData(currentData, targetRole);
+            ResumeData optResumeData = resumeOptimizer.optimizeResumeData(currentData, targetRole);
 
             // Halt if AI hallucinated bounds
-            changeValidator.validateChanges(currentData, optimizedData);
+            changeValidator.validateChanges(currentData, optResumeData);
 
             ResumeOptimization optRecord = new ResumeOptimization();
             optRecord.setTargetRole(targetRole);
             optRecord.setOriginalData(currentData);
-            optRecord.setOptimizedData(optimizedData);
+            optRecord.setOptResumeData(optResumeData);
             optRecord.setStatus(ResumeStatus.OPTIMIZED);
             String now = Instant.now().toString();
             optRecord.setCreatedAt(now);
@@ -71,7 +71,7 @@ public class ResumeOptimizationService {
             firestoreService.saveDocument(RESUMES_COLLECTION + "/" + resumeId + "/" + OPTIMIZATION_SUBCOLLECTION,
                     OPTIMIZATION_DOC_ID, optRecord);
             firestoreService.updateDocument(RESUMES_COLLECTION, resumeId,
-                    Map.of("status", ResumeStatus.OPTIMIZED.name(), "updatedAt", now, "targetRole", targetRole));
+                    Map.of("updatedAt", now, "targetRole", targetRole));
 
             return optRecord;
         } catch (Exception e) {
@@ -81,7 +81,7 @@ public class ResumeOptimizationService {
         }
     }
 
-    public void executeMerge(String userId, String resumeId, ResumeData partiallyMergedData) {
+    public void executeMerge(String userId, String resumeId, ResumeData optResumeData) {
         Resume resume = firestoreService.getDocument(RESUMES_COLLECTION, resumeId, Resume.class);
         if (resume == null || resume.getUserId() == null || !resume.getUserId().equals(userId)) {
             throw new IllegalArgumentException("Resume not found or unauthorized");
@@ -103,11 +103,12 @@ public class ResumeOptimizationService {
 
         // Save new core block
         firestoreService.saveDocument(RESUMES_COLLECTION + "/" + resumeId + "/" + DATA_SUBCOLLECTION, DATA_DOC_ID,
-                partiallyMergedData);
+                optResumeData);
         // Clear Pending UI flag
         firestoreService.deleteDocument(RESUMES_COLLECTION + "/" + resumeId + "/" + OPTIMIZATION_SUBCOLLECTION,
                 OPTIMIZATION_DOC_ID);
-        firestoreService.updateDocument(RESUMES_COLLECTION, resumeId, Map.of("updatedAt", now));
+        firestoreService.updateDocument(RESUMES_COLLECTION, resumeId,
+                Map.of("updatedAt", now, "status", ResumeStatus.OPTIMIZED.name()));
     }
 
     public void rejectOptimization(String userId, String resumeId) {

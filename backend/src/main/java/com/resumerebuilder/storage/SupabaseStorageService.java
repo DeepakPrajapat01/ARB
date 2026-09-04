@@ -10,6 +10,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,6 +74,33 @@ public class SupabaseStorageService implements StorageService {
             s3Client.deleteObject(delReq);
         } catch (Exception e) {
             throw new RuntimeException("Failed to delete file from storage.", e);
+        }
+    }
+
+    @Override
+    public void deleteFolder(String bucketName, String pathPrefix) {
+        try {
+            boolean isTruncated = true;
+            String continuationToken = null;
+
+            while (isTruncated) {
+                ListObjectsV2Request listReq = ListObjectsV2Request.builder()
+                        .bucket(bucketName)
+                        .prefix(pathPrefix)
+                        .continuationToken(continuationToken)
+                        .build();
+
+                ListObjectsV2Response listRes = s3Client.listObjectsV2(listReq);
+
+                for (S3Object s3Object : listRes.contents()) {
+                    deleteFile(bucketName, s3Object.key());
+                }
+
+                isTruncated = listRes.isTruncated();
+                continuationToken = listRes.nextContinuationToken();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete folder from storage.", e);
         }
     }
 

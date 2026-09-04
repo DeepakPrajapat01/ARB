@@ -1,0 +1,4 @@
+﻿app/(main)/dashboard/resumes/[id]/optimize/page.tsx(121,35): error TS2352: Conversion of type 'ResumeData' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ResumeData'.
+app/(main)/dashboard/resumes/[id]/optimize/page.tsx(124,12): error TS2352: Conversion of type 'Record<string, unknown>' to type 'ResumeData' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Record<string, unknown>' is missing the following properties from type 'ResumeData': schemaVersion, personalInfo, summary, education, and 5 more.

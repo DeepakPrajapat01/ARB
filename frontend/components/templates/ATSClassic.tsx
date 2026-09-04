@@ -97,67 +97,19 @@ export function ATSClassic({ data }: { data: ResumeData }) {
             )}
 
             {/* Education */}
-            {/* {education && education.length > 0 && (
+            {education && education.length > 0 && (
                 <div className="mb-4">
                     <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-2">Education</h2>
                     {education.map((edu, idx) => (
                         <div key={idx} className="mb-3 break-inside-avoid">
                             <div className="flex justify-between items-baseline mb-1">
                                 <h3 className="text-base font-bold">{edu.institution}</h3>
-                                <span className="text-sm font-medium">{edu.graduationDate}</span>
+                                <span className="text-sm font-medium">{(edu.endDate || edu.startDate) ? (edu.endDate ?? edu.startDate) : ''}</span>
                             </div>
                             <div className="flex justify-between items-baseline text-sm">
                                 <span className="italic">{edu.degree} {edu.fieldOfStudy ? `in ${edu.fieldOfStudy}` : ''}</span>
-                                {edu.gpa && <span>GPA: {edu.gpa}</span>}
+                                {edu.grade && <span>Grade: {edu.grade}</span>}
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )} */}
-
-            {/* Education */}
-            {education && education.length > 0 && (
-                <div className="mb-4">
-                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-2">
-                        Education
-                    </h2>
-
-                    {education.map((edu, idx) => (
-                        <div key={idx} className="mb-3 break-inside-avoid">
-                            <div className="flex justify-between items-baseline mb-1">
-                                <h3 className="text-base font-bold">
-                                    {edu.institution}
-                                </h3>
-
-                                {(edu.startDate || edu.endDate) && (
-                                    <span className="text-sm font-medium whitespace-nowrap">
-                                        {edu.startDate && edu.endDate
-                                            ? `${edu.startDate} – ${edu.endDate}`
-                                            : edu.endDate || edu.startDate}
-                                    </span>
-                                )}
-                            </div>
-
-                            {(edu.degree || edu.fieldOfStudy) && (
-                                <div className="flex justify-between items-baseline text-sm">
-                                    <span className="italic">
-                                        {edu.degree}
-                                        {edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ""}
-                                    </span>
-
-                                    {edu.grade && (
-                                        <span>
-                                            Grade: {edu.grade}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-
-                            {edu.description && (
-                                <p className="text-sm mt-1 leading-relaxed">
-                                    {edu.description}
-                                </p>
-                            )}
                         </div>
                     ))}
                 </div>

@@ -5,7 +5,7 @@ import com.resumerebuilder.resume.model.ResumeStatus;
 public class ResumeOptimization {
     private String targetRole;
     private ResumeData originalData;
-    private ResumeData optimizedData;
+    private ResumeData optResumeData;
     private ResumeStatus status;
     private String createdAt;
     private String updatedAt;
@@ -27,12 +27,12 @@ public class ResumeOptimization {
         this.originalData = originalData;
     }
 
-    public ResumeData getOptimizedData() {
-        return optimizedData;
+    public ResumeData getOptResumeData() {
+        return optResumeData;
     }
 
-    public void setOptimizedData(ResumeData optimizedData) {
-        this.optimizedData = optimizedData;
+    public void setOptResumeData(ResumeData optResumeData) {
+        this.optResumeData = optResumeData;
     }
 
     public ResumeStatus getStatus() {

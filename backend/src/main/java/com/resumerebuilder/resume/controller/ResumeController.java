@@ -250,10 +250,10 @@ public class ResumeController {
      */
     @PostMapping("/{id}/optimization/accept")
     public ResponseEntity<?> acceptOptimization(HttpServletRequest request, @PathVariable String id,
-            @RequestBody ResumeData mergedData) {
+            @RequestBody ResumeData optResumeData) {
         try {
             FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
-            optimizationService.executeMerge(token.getUid(), id, mergedData);
+            optimizationService.executeMerge(token.getUid(), id, optResumeData);
             return ResponseEntity.ok(Map.of("message", "Optimization accepted and saved successfully."));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

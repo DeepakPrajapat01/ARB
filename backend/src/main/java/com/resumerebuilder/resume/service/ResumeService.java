@@ -76,20 +76,24 @@ public class ResumeService {
     public void deleteResume(String userId, String resumeId) {
         Resume resume = getResume(userId, resumeId);
 
-        // Delete physical object in Supabase
-        boolean fileDeleted = false;
+        // Delete ALL physical objects in Supabase associated with this resume
+        boolean filesDeleted = false;
         try {
-            storageService.deleteFile(resume.getStorageBucket(), resume.getStoragePath());
-            fileDeleted = true;
+            String folderPrefix = "users/" + userId + "/resumes/" + resumeId + "/";
+            storageService.deleteFolder(resume.getStorageBucket(), folderPrefix);
+            filesDeleted = true;
         } catch (Exception e) {
-            System.err.println(
-                    "Critical Error: Supabase deletion failed. Orphan file possible at: " + resume.getStoragePath());
+            System.err.println("Critical Error: Supabase bulk deletion failed for: " + resumeId);
             throw new RuntimeException("Storage deletion failed, rolling back operation to prevent orphan files.");
         }
 
-        // Attempt deleting Firestore trace metadata
-        if (fileDeleted) {
-            firestoreService.deleteDocument(COLLECTION_NAME, resumeId);
+        // Delete Firestore trace metadata and established sub-documents
+        if (filesDeleted) {
+            firestoreService.deleteDocument(COLLECTION_NAME, resumeId); // the main resume definition
+            firestoreService.deleteDocument(COLLECTION_NAME, resumeId + "/extraction/current");
+            firestoreService.deleteDocument(COLLECTION_NAME, resumeId + "/data/current");
+            firestoreService.deleteDocument(COLLECTION_NAME, resumeId + "/optimization/pending");
+            firestoreService.deleteDocument(COLLECTION_NAME, resumeId + "/pdfs/current");
         }
     }
 

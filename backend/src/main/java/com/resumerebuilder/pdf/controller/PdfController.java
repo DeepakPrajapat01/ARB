@@ -52,7 +52,7 @@ public class PdfController {
             @RequestBody Map<String, String> body,
             HttpServletRequest request) {
 
-        FirebaseToken token = firebaseTokenService.extractToken(request);
+        FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
         if (token == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Unauthorized: valid Firebase token required.");
@@ -63,6 +63,11 @@ public class PdfController {
         if (resume == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Resume not found.");
+        }
+
+        if (resume.getStatus() != com.resumerebuilder.resume.model.ResumeStatus.OPTIMIZED) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Resume must be in OPTIMIZED state before generating PDF.");
         }
 
         String templateId = body.getOrDefault("templateId", "ats-classic");
@@ -83,10 +88,10 @@ public class PdfController {
                     .substring(0, 8);
 
             PdfMetadata meta = pdfGenerationService.generatePdf(id, templateId, userId, contentHash);
-            String downloadUrl = pdfGenerationService.generateDownloadUrl(id, userId);
+            Map<String, Object> pdfInfo = pdfGenerationService.getGeneratedPdfInfo(id, userId);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("downloadUrl", downloadUrl);
+            response.put("downloadUrl", pdfInfo.get("downloadUrl"));
             response.put("status", meta.getStatus());
             response.put("hash", contentHash);
             return ResponseEntity.ok(response);
@@ -106,7 +111,7 @@ public class PdfController {
             @PathVariable String id,
             HttpServletRequest request) {
 
-        FirebaseToken token = firebaseTokenService.extractToken(request);
+        FirebaseToken token = firebaseTokenService.extractTokenFromRequest(request);
         if (token == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -118,11 +123,13 @@ public class PdfController {
         }
 
         try {
-            String downloadUrl = pdfGenerationService.generateDownloadUrl(id, userId);
-            return ResponseEntity.ok(Map.of("downloadUrl", downloadUrl));
+            Map<String, Object> pdfInfo = pdfGenerationService.getGeneratedPdfInfo(id, userId);
+            return ResponseEntity.ok(pdfInfo);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "No PDF found for this resume: " + e.getMessage()));
+            return ResponseEntity.ok(
+                    Map.of(
+                            "status", "NOT_GENERATED",
+                            "message", "No PDF found for this resume: " + e.getMessage()));
         }
     }
 

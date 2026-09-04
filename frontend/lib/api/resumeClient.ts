@@ -24,6 +24,14 @@ export interface ExtractionResult {
     message?: string;
 }
 
+export interface GeneratedPdfInfo {
+    downloadUrl?: string;
+    templateId?: string;
+    generatedAt?: string;
+    status: string;
+    message?: string;
+}
+
 export interface ResumeData {
     schemaVersion: string;
     personalInfo: {
@@ -85,6 +93,8 @@ export interface ResumeData {
     }>;
 }
 
+export type OptResumeData = ResumeData;
+
 export const resumeClient = {
     /**
      * securely transmits binary payloads mirroring to the strict Spring Boot Multipart boundaries
@@ -114,6 +124,10 @@ export const resumeClient = {
 
     getPresignedUrl: async (id: string): Promise<{ url: string }> => {
         return ApiClient.get(`/api/v1/resumes/${id}/download`) as Promise<{ url: string }>;
+    },
+
+    getGeneratedPdfInfo: async (id: string): Promise<GeneratedPdfInfo> => {
+        return ApiClient.get(`/api/v1/resumes/${id}/pdf/download`) as Promise<GeneratedPdfInfo>;
     },
 
     extractResume: async (id: string): Promise<ExtractionResult> => {
@@ -158,11 +172,11 @@ export const resumeClient = {
         }
     },
 
-    acceptOptimization: async (id: string, mergedData: ResumeData): Promise<{ message: string }> => {
+    acceptOptimization: async (id: string, optResumeData: OptResumeData): Promise<{ message: string }> => {
         return ApiClient.request(`/api/v1/resumes/${id}/optimization/accept`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(mergedData)
+            body: JSON.stringify(optResumeData)
         }) as Promise<{ message: string }>;
     },
 
@@ -184,7 +198,7 @@ export const resumeClient = {
 export interface ResumeOptimization {
     targetRole: string;
     originalData: ResumeData;
-    optimizedData: ResumeData;
+    optResumeData: OptResumeData;
     status: string;
     createdAt: string;
     updatedAt: string;

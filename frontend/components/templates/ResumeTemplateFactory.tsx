@@ -1,6 +1,8 @@
 import React from 'react';
 import { ResumeData } from '@/lib/api/resumeClient';
 import { ATSClassic } from './ATSClassic';
+import { DeveloperTemplate } from './DeveloperTemplate';
+import { FresherTemplate } from './FresherTemplate';
 
 interface TemplateFactoryProps {
     templateId: string;
@@ -9,15 +11,13 @@ interface TemplateFactoryProps {
 }
 
 export function ResumeTemplateFactory({ templateId, data, scale = 1 }: TemplateFactoryProps) {
-    // Determine which template to render based on templateId
     let TemplateComponent;
     switch (templateId) {
         case 'developer':
-            // Fallback to ATS Classic until developer template is created
-            TemplateComponent = ATSClassic;
+            TemplateComponent = DeveloperTemplate;
             break;
         case 'fresher':
-            TemplateComponent = ATSClassic;
+            TemplateComponent = FresherTemplate;
             break;
         case 'ats-classic':
         default:
