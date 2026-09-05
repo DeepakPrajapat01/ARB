@@ -1,148 +1,5 @@
 package com.resumerebuilder.pdf.service;
 
-// import com.google.firebase.auth.FirebaseAuth;
-// import com.microsoft.playwright.Browser;
-// import com.microsoft.playwright.BrowserType;
-// import com.microsoft.playwright.Locator;
-// import com.microsoft.playwright.Page;
-// import com.microsoft.playwright.Playwright;
-// import com.resumerebuilder.firebase.FirestoreService;
-// import com.resumerebuilder.pdf.model.PdfMetadata;
-// import com.resumerebuilder.pdf.model.PdfStatus;
-// import com.resumerebuilder.storage.StorageService;
-// import org.springframework.beans.factory.annotation.Value;
-// import org.springframework.stereotype.Service;
-
-// import java.time.Instant;
-// import java.util.HashMap;
-// import java.util.Map;
-
-// @Service
-// public class PdfGenerationService {
-
-//     private final StorageService storageService;
-//     private final FirestoreService firestoreService;
-
-//     @Value("${supabase.bucket-name:resume-files}")
-//     private String bucketName;
-
-//     // Use localhost in dev environment, configure this via ENV for prod
-//     @Value("${frontend.url:http://localhost:3000}")
-//     private String frontendUrl;
-
-//     public PdfGenerationService(StorageService storageService, FirestoreService firestoreService) {
-//         this.storageService = storageService;
-//         this.firestoreService = firestoreService;
-//     }
-
-//     public PdfMetadata generatePdf(String resumeId, String templateId, String userId, String contentHash) {
-//         String basePath = resumeId + "/pdfs";
-//         String currentPdfPath = basePath + "/current";
-
-//         // 1. Check idempotency (if the content hasn't changed, return the existing
-//         // tracking mapped).
-//         PdfMetadata currentMeta = firestoreService.getDocument("resumes", currentPdfPath, PdfMetadata.class);
-//         if (currentMeta != null && PdfStatus.GENERATED.equals(currentMeta.getStatus())
-//                 && currentMeta.getContentHash().equals(contentHash)) {
-//             return currentMeta;
-//         }
-
-//         PdfMetadata meta = new PdfMetadata();
-//         meta.setResumeId(resumeId);
-//         meta.setVersionId(contentHash); // using hash securely maps variations uniquely linearly
-//         meta.setTemplateId(templateId);
-//         meta.setContentHash(contentHash);
-//         meta.setStatus(PdfStatus.GENERATING);
-//         meta.setGeneratedAt(Instant.now().toString());
-
-//         // Store the initialized state safely explicitly
-//         firestoreService.saveDocument("resumes", currentPdfPath, meta);
-
-//         try {
-//             // 2. Headless Context Pipeline
-//             // Mints a secure transient token enabling Playwright to breach auth wrappers
-//             // seamlessly mapping identity
-//             String customToken = FirebaseAuth.getInstance().createCustomToken(userId);
-
-//             byte[] pdfBytes;
-//             // Native try-with-resources to enforce JVM clean up on Chromium zombies
-//             try (Playwright playwright = Playwright.create()) {
-//                 Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-//                 Page page = browser.newPage();
-
-//                 // Pass the custom-token into the bridging route
-//                 // The frontend sets the firebase identity, then redirects to the target
-//                 // `/resume-render/[id]`
-//                 String navigateTo = String.format(
-//                         "%s/resume-render/auth?token=%s&redirect=/resume-render/%s?templateId=%s",
-//                         frontendUrl, customToken, resumeId, templateId);
-
-//                 page.navigate(navigateTo);
-
-//                 // Wait firmly until the `#render-ready` explicitly populates mapping all API
-//                 // returns natively
-//                 // Wait firmly until the `#render-ready` explicitly populates mapping all API
-//                 // returns natively
-//                 // #render-ready is hidden, so wait for ATTACHED instead of VISIBLE
-//                 Locator marker = page.locator("#render-ready");
-//                 marker.waitFor(new Locator.WaitForOptions()
-//                         .setState(com.microsoft.playwright.options.WaitForSelectorState.ATTACHED)
-//                         .setTimeout(15000));
-
-//                 // Wait for all fonts to finish loading before rendering
-//                 page.evaluate("document.fonts.ready");
-
-//                 // Emulate standard A4 print margins exactly mapping strictly
-//                 pdfBytes = page.pdf(new Page.PdfOptions()
-//                         .setFormat("A4")
-//                         .setPrintBackground(true)
-//                         .setMargin(new com.microsoft.playwright.options.Margin()
-//                                 .setTop("0").setBottom("0").setLeft("0").setRight("0")));
-//             }
-
-//             // 3. Storage flushing mapping explicitly linearly
-//             String storageKey = String.format("users/%s/resumes/%s/generated/v_%s.pdf", userId, resumeId, contentHash);
-//             storageService.uploadFile(bucketName, storageKey, pdfBytes, "application/pdf");
-
-//             // 4. Update structural markers permanently
-//             meta.setStorageKey(storageKey);
-//             meta.setStatus(PdfStatus.GENERATED);
-//             meta.setFileSize(pdfBytes.length);
-//             // Default 1 page for now mapping structurally if needed later
-//             meta.setPageCount(1);
-
-//             firestoreService.updateDocument("resumes", currentPdfPath, meta);
-//             return meta;
-
-//         } catch (Exception e) {
-//             Map<String, Object> failureUpdate = new HashMap<>();
-//             failureUpdate.put("status", PdfStatus.GENERATION_FAILED);
-//             firestoreService.updateDocument("resumes", currentPdfPath, failureUpdate);
-//             throw new RuntimeException("Generated structural PDF failures: " + e.getMessage(), e);
-//         }
-//     }
-
-//     public Map<String, Object> getGeneratedPdfInfo(String resumeId, String userId) {
-//         String currentPdfPath = resumeId + "/pdfs/current";
-//         PdfMetadata meta = firestoreService.getDocument("resumes", currentPdfPath, PdfMetadata.class);
-
-//         if (meta == null || meta.getStorageKey() == null) {
-//             throw new RuntimeException("Requested PDF missing storage keys explicitly.");
-//         }
-
-//         // Return signed transiently expiring freely
-//         String downloadUrl = storageService.generatePresignedUrl(bucketName, meta.getStorageKey(), 60).toString();
-
-//         Map<String, Object> result = new HashMap<>();
-//         result.put("downloadUrl", downloadUrl);
-//         result.put("templateId", meta.getTemplateId());
-//         result.put("generatedAt", meta.getGeneratedAt());
-//         result.put("status", meta.getStatus());
-
-//         return result;
-//     }
-// }
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -172,8 +29,9 @@ public class PdfGenerationService {
     @Value("${supabase.bucket-name:resume-files}")
     private String bucketName;
 
-    @Value("${frontend.url:http://localhost:3000}")
-    private String frontendUrl;
+     @Value("${renderer.base-url}")
+   private String rendererBaseUrl;
+
 
     public PdfGenerationService(
             StorageService storageService,
@@ -275,21 +133,8 @@ public class PdfGenerationService {
              * --------------------------------------------------------
              * 4. ENCODE QUERY PARAMETERS
              * --------------------------------------------------------
-             *
-             * This is important.
-             *
-             * BAD:
-             *
-             * /auth?token=ABC&redirect=/resume-render/123?templateId=developer
-             *
-             * The browser can interpret templateId as a parameter of
-             * /auth instead of part of redirect.
-             *
-             * GOOD:
-             *
-             * /auth?token=ABC&redirect=%2Fresume-render%2F123%3FtemplateId...
              */
-            String encodedToken = URLEncoder.encode(
+               String encodedToken = URLEncoder.encode(
                     customToken,
                     StandardCharsets.UTF_8);
 
@@ -304,7 +149,11 @@ public class PdfGenerationService {
                     renderPath,
                     StandardCharsets.UTF_8);
 
-            String navigateTo = frontendUrl
+            String baseUrl = rendererBaseUrl.endsWith("/")
+                    ? rendererBaseUrl.substring(0, rendererBaseUrl.length() - 1)
+                    : rendererBaseUrl;
+
+            String navigateTo = baseUrl
                     + "/resume-render/auth"
                     + "?token="
                     + encodedToken
@@ -324,20 +173,10 @@ public class PdfGenerationService {
 
                 try {
 
-                    /*
-                     * Chromium is the ONLY browser required for PDF
-                     * generation.
-                     *
-                     * Playwright will use its managed Chromium
-                     * installation.
-                     */
                     browser = playwright.chromium().launch(
                             new BrowserType.LaunchOptions()
                                     .setHeadless(true));
 
-                    /*
-                     * Use a dedicated browser context.
-                     */
                     try (BrowserContext context = browser.newContext()) {
 
                         Page page = context.newPage();
@@ -357,16 +196,6 @@ public class PdfGenerationService {
                          * ------------------------------------------------
                          * 7. WAIT FOR RENDER MARKER
                          * ------------------------------------------------
-                         *
-                         * IMPORTANT:
-                         *
-                         * #render-ready is intentionally hidden.
-                         *
-                         * Therefore DO NOT use:
-                         *
-                         * VISIBLE
-                         *
-                         * We only need the marker to exist in the DOM.
                          */
                         Locator renderReady = page.locator("#render-ready");
 
@@ -380,9 +209,6 @@ public class PdfGenerationService {
                          * ------------------------------------------------
                          * 8. WAIT FOR WEB FONTS
                          * ------------------------------------------------
-                         *
-                         * Ensures the generated PDF uses the same fonts
-                         * as the Live A4 Preview.
                          */
                         page.evaluate(
                                 "() => document.fonts.ready");
@@ -391,11 +217,6 @@ public class PdfGenerationService {
                          * ------------------------------------------------
                          * 9. SMALL RENDER STABILITY CHECK
                          * ------------------------------------------------
-                         *
-                         * We do NOT use Thread.sleep().
-                         *
-                         * Wait until the browser reports that the
-                         * document has completed loading.
                          */
                         page.waitForFunction(
                                 "() => document.readyState === 'complete'",
@@ -407,9 +228,6 @@ public class PdfGenerationService {
                          * ------------------------------------------------
                          * 10. GENERATE PDF
                          * ------------------------------------------------
-                         *
-                         * This is the exact HTML rendered by the same
-                         * React template used by Live Preview.
                          */
                         pdfBytes = page.pdf(
                                 new Page.PdfOptions()
@@ -426,13 +244,6 @@ public class PdfGenerationService {
 
                 } finally {
 
-                    /*
-                     * ------------------------------------------------
-                     * 11. ALWAYS CLOSE CHROMIUM
-                     * ------------------------------------------------
-                     *
-                     * Prevents orphan Chromium processes.
-                     */
                     if (browser != null) {
                         browser.close();
                     }
@@ -453,13 +264,6 @@ public class PdfGenerationService {
              * --------------------------------------------------------
              * 13. UPLOAD GENERATED PDF TO SUPABASE
              * --------------------------------------------------------
-             *
-             * IMPORTANT:
-             *
-             * This is NOT the original uploaded resume.
-             *
-             * It is a newly generated PDF based on the optimized
-             * ResumeData and selected template.
              */
             String storageKey = String.format(
                     "users/%s/resumes/%s/generated/v_%s.pdf",
@@ -481,11 +285,6 @@ public class PdfGenerationService {
             meta.setStorageKey(storageKey);
             meta.setStatus(PdfStatus.GENERATED);
             meta.setFileSize(pdfBytes.length);
-
-            /*
-             * Keep existing behaviour for now.
-             * Can later be replaced by actual PDF page count.
-             */
             meta.setPageCount(1);
 
             firestoreService.updateDocument(
@@ -497,11 +296,6 @@ public class PdfGenerationService {
 
         } catch (Exception e) {
 
-            /*
-             * --------------------------------------------------------
-             * 15. MARK GENERATION AS FAILED
-             * --------------------------------------------------------
-             */
             Map<String, Object> failureUpdate = new HashMap<>();
 
             failureUpdate.put(
@@ -525,9 +319,6 @@ public class PdfGenerationService {
 
     /**
      * Returns information about the latest generated PDF.
-     *
-     * This always points to the GENERATED PDF, not the original
-     * uploaded resume.
      */
     public Map<String, Object> getGeneratedPdfInfo(
             String resumeId,
@@ -547,9 +338,6 @@ public class PdfGenerationService {
                     "No successfully generated PDF exists for this resume.");
         }
 
-        /*
-         * Generate a short-lived signed URL from Supabase.
-         */
         String downloadUrl = storageService
                 .generatePresignedUrl(
                         bucketName,
@@ -559,41 +347,17 @@ public class PdfGenerationService {
 
         Map<String, Object> result = new HashMap<>();
 
-        result.put(
-                "downloadUrl",
-                downloadUrl);
-
-        result.put(
-                "templateId",
-                meta.getTemplateId());
-
-        result.put(
-                "generatedAt",
-                meta.getGeneratedAt());
-
-        result.put(
-                "status",
-                meta.getStatus());
-
-        result.put(
-                "fileSize",
-                meta.getFileSize());
-
-        result.put(
-                "storageKey",
-                meta.getStorageKey());
+        result.put("downloadUrl", downloadUrl);
+        result.put("templateId", meta.getTemplateId());
+        result.put("generatedAt", meta.getGeneratedAt());
+        result.put("status", meta.getStatus());
+        result.put("fileSize", meta.getFileSize());
+        result.put("storageKey", meta.getStorageKey());
 
         return result;
     }
 
-    /**
-     * Safely encode a path segment.
-     *
-     * Resume IDs normally contain simple characters, but this prevents
-     * accidental URL-breaking characters.
-     */
     private String encodePathSegment(String value) {
-
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(
                     "Resume ID cannot be null or empty.");
