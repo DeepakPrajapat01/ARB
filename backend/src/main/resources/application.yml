@@ -23,3 +23,6 @@ resume:
   extraction:
     max-file-size-bytes: 5242880
     max-characters: 100000
+
+cors:
+  allowed-origin-patterns: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000,https://resumeenhancer-chi.vercel.app}
