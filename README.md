@@ -39,9 +39,4 @@ mvn spring-boot:run
 ## 9. Health-check endpoint
 Verify backend is up at `http://localhost:8080/api/v1/health`.
 
-## 10. Planned Development Milestones
-- [x] Milestone 1: Project Foundation (Repository layout, health-checks)
-- [ ] Milestone 2: Firebase Auth & User Model
-- [ ] Milestone 3: Resume Upload & Extraction
-- [ ] Milestone 4: AI Optimization
-- [ ] Milestone 5: Output Generation (Templates & PDF)
+
